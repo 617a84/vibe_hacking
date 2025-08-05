@@ -24,7 +24,7 @@ The `roomodes` file in this repo contains 5 custom roles:
     1. If you want to take advantage of the `Security Tracer` Roo mode, which triages findings to determine if they are real issues ("True Positives"), set up the vector database [Qdrant](https://qdrant.tech/), which you can get a free hosted account for or run locally in Docker. 
 1. Configure Roo Code.
     1. In the Roo Code extension within VS Code, choose your LLM provider of choice and provide your API keys.
-        * In the webinar, we used Anthropic's Claude 3.7 Sonnet.
+        * In the webinar, we used Anthropic's Claude 4.0 Sonnet.
     1. Configure [codebase indexing](https://docs.roocode.com/features/codebase-indexing) using Qdrant.
     1. Copy the `roomodes` file in this folder into the project root of the repo you're reviewing (rename it to `.roomodes`), or globally in `~/.roo/`. See the [Roo docs](https://docs.roocode.com/features/custom-modes#importexport-modes) for more info.
 
