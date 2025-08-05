@@ -1,0 +1,203 @@
+# Input Source Tracing Configuration
+# Framework for severity adjustment based on input controllability
+
+version: "1.0"
+framework_name: "Input Source Tracing & Severity Adjustment"
+
+input_source_classification:
+  external_untrusted:
+    description: "Input sources directly controllable by external attackers"
+    risk_level: "CRITICAL"
+    severity_multiplier: 1.0
+    examples:
+      - "HTTP parameters (GET/POST/PUT/DELETE)"
+      - "HTTP headers (User-Agent, Referer, X-Forwarded-For)"
+      - "File uploads and multipart data"
+      - "Cookie values"
+      - "JSON/XML request bodies"
+      - "WebSocket messages"
+      - "Command line arguments (in web contexts)"
+    detection_patterns:
+      - "$_GET\\["
+      - "$_POST\\["
+      - "$_REQUEST\\["
+      - "$_COOKIE\\["
+      - "$_FILES\\["
+      - "request\\.getParameter"
+      - "req\\.body"
+      - "req\\.query"
+      - "req\\.headers"
+
+  semi_trusted:
+    description: "Input sources with limited trust but potential user influence"
+    risk_level: "HIGH"
+    severity_multiplier: 0.8
+    examples:
+      - "Configuration files (if user-modifiable)"
+      - "Environment variables"
+      - "Database content from previous user input"
+      - "Session data (if user-controllable)"
+      - "Cache values"
+      - "Inter-process communication"
+    detection_patterns:
+      - "getenv\\("
+      - "process\\.env"
+      - "\\$_ENV\\["
+      - "config\\."
+      - "\\$_SESSION\\["
+      - "cache\\.get"
+
+  application_controlled:
+    description: "Input sources controlled by application logic"
+    risk_level: "MEDIUM"
+    severity_multiplier: 0.5
+    examples:
+      - "Static configuration values"
+      - "Internal database IDs (auto-generated)"
+      - "System-generated tokens"
+      - "Application constants"
+      - "Framework-generated values"
+    detection_patterns:
+      - "\\$this->id"
+      - "getId\\(\\)"
+      - "auto_increment"
+      - "generateToken\\("
+      - "CONSTANT_"
+
+  system_controlled:
+    description: "Input sources completely controlled by the system"
+    risk_level: "INFO"
+    severity_multiplier: 0.1
+    examples:
+      - "Hardcoded constants"
+      - "Static arrays/objects"
+      - "Class properties (non-user-modifiable)"
+      - "Built-in function returns"
+      - "System timestamps"
+    detection_patterns:
+      - "array\\("
+      - "\\[.*\\]"
+      - "const "
+      - "final "
+      - "static "
+      - "time\\(\\)"
+
+analysis_methodology:
+  step_1_pattern_detection:
+    description: "Identify vulnerable code patterns using static analysis"
+    techniques:
+      - "AST parsing and semantic analysis"
+      - "Taint analysis for data flow"
+      - "Pattern matching for vulnerability signatures"
+      - "Control flow analysis"
+
+  step_2_input_source_tracing:
+    description: "Trace variables back to their input sources"
+    requirements:
+      - "Follow variable assignments backwards"
+      - "Identify all possible input vectors"
+      - "Map data transformations along the path"
+      - "Document complete data flow chain"
+
+  step_3_controllability_assessment:
+    description: "Determine if attackers can influence the input"
+    criteria:
+      - "Direct user input (forms, URLs, headers)"
+      - "Indirect user input (stored data, uploads)"
+      - "Semi-trusted input (config, environment)"
+      - "Application-controlled input (internal logic)"
+
+  step_4_severity_adjustment:
+    description: "Adjust risk level based on input controllability"
+    rules:
+      - "External Control = Original Severity"
+      - "Semi-Trusted = Reduce by 1 level"
+      - "Application-Controlled = Reduce by 2 levels"
+      - "System-Controlled = INFO level only"
+
+severity_adjustment_matrix:
+  CRITICAL:
+    external_untrusted: "CRITICAL"
+    semi_trusted: "HIGH"
+    application_controlled: "LOW"
+    system_controlled: "INFO"
+  
+  HIGH:
+    external_untrusted: "HIGH"
+    semi_trusted: "MEDIUM"
+    application_controlled: "LOW"
+    system_controlled: "INFO"
+  
+  MEDIUM:
+    external_untrusted: "MEDIUM"
+    semi_trusted: "LOW"
+    application_controlled: "INFO"
+    system_controlled: "INFO"
+  
+  LOW:
+    external_untrusted: "LOW"
+    semi_trusted: "INFO"
+    application_controlled: "INFO"
+    system_controlled: "INFO"
+
+reporting_requirements:
+  mandatory_fields:
+    - "vulnerability_pattern"
+    - "input_source_analysis"
+    - "controllability_classification"
+    - "original_severity"
+    - "adjusted_severity"
+    - "adjustment_rationale"
+    - "data_flow_trace"
+    - "exploitation_feasibility"
+
+  template_format: |
+    ## Vulnerability Analysis
+    
+    **Pattern**: {vulnerability_type}
+    **Location**: {file_path}:{line_number}
+    
+    ### Input Source Analysis
+    - **Primary Input**: {input_source_type}
+    - **Controllability**: {controllability_level}
+    - **Data Flow**: {data_flow_trace}
+    
+    ### Severity Assessment
+    - **Pattern Severity**: {original_severity}
+    - **Input Classification**: {input_classification}
+    - **Adjusted Severity**: {adjusted_severity}
+    - **Rationale**: {adjustment_rationale}
+    
+    ### Exploitation Assessment
+    - **Feasibility**: {exploitation_feasibility}
+    - **Attack Vector**: {attack_vector_description}
+    - **Impact**: {potential_impact}
+
+integration_points:
+  static_analysis_tools:
+    - "Enhance SemGrep rules with input source classification"
+    - "Integrate Snyk findings with controllability assessment"
+    - "Add input tracing to custom vulnerability scanners"
+
+  dynamic_testing:
+    - "Focus testing on externally-controllable inputs"
+    - "Skip PoC generation for system-controlled vulnerabilities"
+    - "Prioritize validation based on adjusted severity"
+
+  reporting_tools:
+    - "Include input source context in all vulnerability reports"
+    - "Generate severity-adjusted risk scores"
+    - "Provide clear false positive identification"
+
+validation_criteria:
+  false_positive_indicators:
+    - "System-controlled inputs with no external influence path"
+    - "Hardcoded values in vulnerability patterns"
+    - "Internal application logic without user interaction"
+    - "Framework-generated secure values"
+
+  true_positive_confirmation:
+    - "External user input reaches vulnerable function"
+    - "Controllable parameters in vulnerability pattern"
+    - "Exploitable attack vector identified"
+    - "Proof-of-concept demonstrates impact"
